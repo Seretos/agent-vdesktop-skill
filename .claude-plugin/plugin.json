@@ -4,6 +4,6 @@
   "version": "0.1.0",
   "author": { "name": "Arne von Appen" },
   "dependencies": [
-    { "name": "agent-vdesktop", "version": "0.*" }
+    { "name": "agent-vdesktop", "version": ">=0.0.1 <1.0.0" }
   ]
 }
