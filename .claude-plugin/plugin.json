@@ -1,0 +1,9 @@
+{
+  "name": "agent-vdesktop-skill",
+  "description": "Skill teaching Claude how to drive the agent-vdesktop MCP server: create/manage Windows Virtual Desktops, apply layouts (presets and custom percent splits, multi-monitor), launch Chrome / Windows Terminal / VS Code into layout slots, pin apps across desktops.",
+  "version": "0.1.0",
+  "author": { "name": "Arne von Appen" },
+  "dependencies": [
+    "agent-vdesktop"
+  ]
+}

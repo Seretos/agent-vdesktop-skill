@@ -1,0 +1,105 @@
+name: release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Release version (semver, no leading v) e.g. 0.0.1"
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Validate version is semver
+        run: |
+          V="${{ inputs.version }}"
+          if [[ ! "$V" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$ ]]; then
+            echo "::error::Version '$V' is not valid semver."
+            exit 1
+          fi
+
+      - name: Fail if tag already exists
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if gh api repos/${{ github.repository }}/git/refs/tags/v${{ inputs.version }} >/dev/null 2>&1; then
+            echo "::error::Tag v${{ inputs.version }} already exists."
+            exit 1
+          fi
+
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Stamp version into plugin.json on main
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          V="${{ inputs.version }}"
+          jq --arg v "$V" '.version = $v' .claude-plugin/plugin.json > /tmp/plugin.json
+          mv /tmp/plugin.json .claude-plugin/plugin.json
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          if git diff --quiet .claude-plugin/plugin.json; then
+            echo "plugin.json already at version $V"
+          else
+            git add .claude-plugin/plugin.json
+            git commit -m "chore: stamp version v$V"
+            git push origin HEAD:main
+          fi
+
+      - name: Build install zip from source tree
+        id: zip
+        run: |
+          STAGE=$(mktemp -d)
+          mkdir -p "$STAGE/.claude-plugin" "$STAGE/skills"
+          cp .claude-plugin/plugin.json "$STAGE/.claude-plugin/"
+          cp -a skills/. "$STAGE/skills/"
+          cp README.md "$STAGE/"
+          mkdir -p dist
+          ZIPNAME="agent-vdesktop-skill-${{ inputs.version }}.zip"
+          (cd "$STAGE" && zip -r "$GITHUB_WORKSPACE/dist/$ZIPNAME" .)
+          echo "asset=dist/$ZIPNAME" >> "$GITHUB_OUTPUT"
+
+      - name: Create tag and GitHub Release on main
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create "v${{ inputs.version }}" \
+            --repo "${{ github.repository }}" \
+            --target main \
+            --title "v${{ inputs.version }}" \
+            --generate-notes \
+            ${{ contains(inputs.version, '-') && '--prerelease' || '' }} \
+            "${{ steps.zip.outputs.asset }}"
+
+      - name: Dispatch to agent-marketplace
+        env:
+          GH_PAT:  ${{ secrets.MARKETPLACE_DISPATCH_TOKEN }}
+          VERSION: ${{ inputs.version }}
+        run: |
+          DESC=$(jq -r '.description' .claude-plugin/plugin.json)
+          NAME=$(jq -r '.name'        .claude-plugin/plugin.json)
+          curl -fsSL -X POST \
+            -H "Authorization: Bearer $GH_PAT" \
+            -H "Accept: application/vnd.github+json" \
+            https://api.github.com/repos/Seretos/agent-marketplace/dispatches \
+            -d @- <<EOF
+          {
+            "event_type": "plugin-release",
+            "client_payload": {
+              "name":        "${NAME}",
+              "description": "${DESC}",
+              "repo":        "${{ github.repository }}",
+              "category":    "skill",
+              "version":     "${VERSION}"
+            }
+          }
+          EOF
