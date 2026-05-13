@@ -34,7 +34,7 @@ apps with specific configurations, or addressing previously launched windows.
 - `get_current_desktop` — which desktop is active
 - `create_desktop(name?)` — make a new one
 - `delete_desktop(target, fallback_desktop?)` — remove; windows flow to fallback
-- `switch_to_desktop(target)` — set foreground desktop
+- `switch_to_desktop(target)` — set foreground desktop — only call when the user explicitly asks to switch/go to/open the new desktop.
 - `rename_desktop(target, new_name)` — Windows 11 only
 
 ### Pinning
@@ -113,8 +113,30 @@ Built-in presets: `fullscreen`, `two-columns`, `two-columns-golden`,
 5. launch_vscode(
      folder="E:\\dev",
      slot="right", desktop="work", label="editor")
+```
+
+Foreground is untouched — call `switch_to_desktop("work")` only if the user asked to switch.
+
+### "Create a desktop with terminal left, Chrome center, VS Code right, and switch to it"
+
+```
+1. create_desktop(name="work")
+2. apply_layout(
+     spec={"type":"preset","name":"three-columns","monitor":0},
+     target_desktop="work")
+3. launch_terminal(
+     tabs=[{"shell":"powershell","cwd":"E:\\dev"}],
+     slot="left", desktop="work", label="dev-term")
+4. launch_chrome(
+     urls=["https://example.com"],
+     slot="center", desktop="work", label="main-browser")
+5. launch_vscode(
+     folder="E:\\dev",
+     slot="right", desktop="work", label="editor")
 6. switch_to_desktop("work")
 ```
+
+The user explicitly asked to switch, so step 6 is appropriate here.
 
 ### "Open Chrome with 3 tabs"
 
@@ -188,6 +210,12 @@ Now you can move/focus/close them by their new handle_id.
 - **Always pass `label`** on every launch. Subsequent turns can address the
   window by label without queries: `move_window("main-browser", ...)` works
   because `REGISTRY.get` resolves labels too.
+- **Do not auto-switch desktops.** Only call `switch_to_desktop` when the user
+  explicitly asks to switch to / go to / open / show the new desktop. Requests
+  like "create a desktop with X" or "open Chrome on desktop Y" are setup-only —
+  leave the foreground untouched. When intent is unclear, default to NOT
+  switching. The same caution applies to `focus_window`, which switches
+  desktops as a side effect.
 - **Custom splits** like "15/35/50" → `{type:"columns", splits:[15,35,50]}`.
   Numbers don't need to sum to 100; they're normalized.
 - **Multi-monitor**: confirm monitor indices with `list_monitors` first if the
