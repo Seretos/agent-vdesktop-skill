@@ -54,7 +54,7 @@ apps with specific configurations, or addressing previously launched windows.
 - `launch_chrome(urls[], slot?, desktop?, label?, new_user_data_dir=True, incognito=False)`
 - `launch_terminal(tabs[], slot?, desktop?, label?, window_title?)`
 - `launch_vscode(folder, files?, slot?, desktop?, label?, reuse_window=False)`
-- `launch_app(executable, args?, cwd?, slot?, desktop?, label?, identification?)`
+- `launch_app(executable, args?, working_directory?, slot?, desktop?, label?, identification?)`
 
 ### Window management
 - `list_windows(desktop?, include_unmanaged=False)`
@@ -157,6 +157,16 @@ launch_terminal(tabs=[
 ], label="dev-term")
 ```
 
+### "Open VS Code on a worktree path"
+
+```
+launch_app(
+  executable="code",
+  args=["E:\\dev\\worktrees\\feature-x"],
+  working_directory="E:\\dev\\worktrees\\feature-x",
+  label="feature-x-editor")
+```
+
 ### "Pin VS Code to all desktops"
 
 ```
@@ -224,6 +234,13 @@ Now you can move/focus/close them by their new handle_id.
 - **Paths**: pass paths as the user gave them. The MCP server auto-translates
   POSIX↔Windows so `/home/test` from a WSL caller becomes `\\wsl$\Ubuntu\home\test`
   for Windows apps. WSL-shell tabs in `launch_terminal` keep their POSIX cwd.
+- **Working directory for `launch_app`**: the optional `working_directory`
+  parameter controls the spawned process's startup directory. Pass `null` (or
+  omit) to inherit the MCP server's own cwd; pass an absolute path to set it
+  explicitly. The MCP validates the path before spawning and returns an error
+  if it does not exist or is not a directory. POSIX↔Windows translation from
+  the **Paths** convention above applies to `working_directory` as well, so a
+  WSL caller can pass `/mnt/e/dev/worktrees/feature` directly.
 - **When `launch_*` fails to resolve an HWND** (timeout error), retry once,
   then fall back to `find_window_by_title` with a unique title fragment.
 - **Don't enumerate every desktop** — `list_desktops` is cheap, but if the user
