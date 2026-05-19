@@ -1,0 +1,14 @@
+{
+  "name": "agent-vdesktop-skill",
+  "version": "0.0.5",
+  "description": "Skill teaching Codex how to drive the agent-vdesktop MCP server: create/manage Windows Virtual Desktops, apply layouts (presets and custom percent splits, multi-monitor), launch Chrome / Windows Terminal / VS Code into layout slots, pin apps across desktops.",
+  "author": {
+    "name": "Arne von Appen"
+  },
+  "repository": "https://github.com/Seretos/agent-vdesktop-skill",
+  "skills": "./skills",
+  "interface": {
+    "displayName": "Agent vDesktop Skill",
+    "shortDescription": "Skill teaching Codex how to use the agent-vdesktop MCP."
+  }
+}
