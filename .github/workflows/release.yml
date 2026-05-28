@@ -71,6 +71,8 @@ jobs:
           cp .codex-plugin/plugin.json  "$STAGE/.codex-plugin/"
           cp -a skills/. "$STAGE/skills/"
           cp README.md "$STAGE/"
+          mkdir -p "$STAGE/assets"
+          cp assets/icon.png "$STAGE/assets/"
           cp LICENSE "$STAGE/" 2>/dev/null || true
 
           mkdir -p dist
@@ -173,7 +175,8 @@ jobs:
               "repo":        "${{ github.repository }}",
               "category":    "skill",
               "version":     "${VERSION}",
-              "ref":         "${TAG}"
+              "ref":         "${TAG}",
+              "icon":        "https://raw.githubusercontent.com/${{ github.repository }}/${TAG}/assets/icon.png"
             }
           }
           EOF
