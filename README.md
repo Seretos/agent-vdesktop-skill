@@ -1,3 +1,5 @@
+<img src="assets/icon.png" alt="agent-vdesktop-skill icon" width="96" />
+
 # agent-vdesktop-skill
 
 A Claude Code **skill** plugin teaching Claude how to drive the [`agent-vdesktop`](https://github.com/Seretos/agent-vdesktop) MCP server (Windows Virtual Desktop orchestration, layouts, app launchers).
