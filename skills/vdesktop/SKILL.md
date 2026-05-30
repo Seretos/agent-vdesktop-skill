@@ -117,6 +117,8 @@ Built-in presets: `fullscreen`, `two-columns`, `two-columns-golden`,
 
 Foreground is untouched — call `switch_to_desktop("work")` only if the user asked to switch.
 
+> Before creating a named desktop, check it doesn't already exist (see **Check before creating named desktops**) — reuse a matching desktop instead of duplicating it.
+
 ### "Create a desktop with terminal left, Chrome center, VS Code right, and switch to it"
 
 ```
@@ -226,6 +228,7 @@ Now you can move/focus/close them by their new handle_id.
   leave the foreground untouched. When intent is unclear, default to NOT
   switching. The same caution applies to `focus_window`, which switches
   desktops as a side effect.
+- **Check before creating named desktops.** Before `create_desktop(name=…)`, call `list_desktops` and check for a matching name. If one exists, reuse it instead of creating a duplicate — Windows allows multiple desktops with the same name, and later name-based references become ambiguous. Only create a fresh duplicate if the user explicitly asks for one.
 - **Custom splits** like "15/35/50" → `{type:"columns", splits:[15,35,50]}`.
   Numbers don't need to sum to 100; they're normalized.
 - **Multi-monitor**: confirm monitor indices with `list_monitors` first if the
