@@ -175,6 +175,7 @@ jobs:
               "description": "${DESC}",
               "repo":        "${{ github.repository }}",
               "category":    "skill",
+              "tags":        ["visual"],
               "version":     "${VERSION}",
               "ref":         "${TAG}",
               "icon":        "https://raw.githubusercontent.com/${{ github.repository }}/${TAG}/assets/icon.png",
